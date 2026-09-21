@@ -1,29 +1,7 @@
-# Виртуальное окружение
-venv/
-env/
-ENV/
-
-# Кеш Python
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-
-# Файлы IDE
-.vscode/
+.venv/
+venv/
+.pytest_cache/
 .idea/
-*.iml
-
-# Системные файлы
-.DS_Store
-Thumbs.db
-
-# Логи
-*.log
-*.tmp
-
-# Переменные окружения
-.env
-
-# Папка с байт-кодом
-.Python
+.vscode/
