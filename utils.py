@@ -1,5 +1,5 @@
 """Вспомогательные функции: безопасный ввод и генерация идентификаторов."""
-from typing import Dict, List, Optional
+from typing import Any, Optional, Sequence
 
 
 def input_int(
@@ -36,6 +36,6 @@ def input_text(prompt: str) -> str:
         print("Ошибка: значение не может быть пустым.")
 
 
-def next_id(items: List[Dict]) -> int:
-    """Вернуть следующий свободный идентификатор для списка записей."""
-    return max((item["id"] for item in items), default=0) + 1
+def next_id(items: Sequence[Any]) -> int:
+    """Вернуть следующий свободный идентификатор для коллекции объектов."""
+    return max((item.id for item in items), default=0) + 1

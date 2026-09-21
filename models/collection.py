@@ -5,7 +5,7 @@
 """
 from typing import Dict, List, Optional
 
-from albums import create_album, get_rating_stars
+from models.albums import create_album, get_rating_stars
 from utils import next_id
 
 
