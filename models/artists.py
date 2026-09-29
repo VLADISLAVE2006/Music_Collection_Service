@@ -1,77 +1,91 @@
-"""Функции работы с исполнителями.
-
-Исполнитель — словарь: {"id", "name", "country", "genre"}.
-"""
-from typing import Dict, List, Optional
+"""Класс исполнителя и функции работы с исполнителями."""
+from typing import List, Optional
 
 from utils import next_id
 
 
+class Artist:
+    """Исполнитель музыкальных альбомов."""
+
+    def __init__(
+        self,
+        artist_id: int,
+        name: str,
+        country: str,
+        genre: str,
+    ) -> None:
+        """Создать исполнителя.
+
+        Raises:
+            ValueError: если имя исполнителя пустое.
+        """
+        if not name.strip():
+            raise ValueError("Имя исполнителя не может быть пустым")
+        self.id = artist_id
+        self.name = name.strip()
+        self.country = country.strip()
+        self.genre = genre.strip()
+
+    @classmethod
+    def from_data(cls, data: dict) -> "Artist":
+        """Создать исполнителя из словаря (запись JSON)."""
+        return cls(
+            artist_id=data["id"],
+            name=data["name"],
+            country=data["country"],
+            genre=data["genre"],
+        )
+
+    def __str__(self) -> str:
+        """Строковое представление исполнителя."""
+        return f"{self.name} ({self.country}), жанр: {self.genre}"
+
+
 def add_artist(
-    artists: List[Dict],
+    artists: List[Artist],
     name: str,
     country: str,
     genre: str,
-) -> Dict:
-    """Добавить исполнителя в список и вернуть созданную запись.
-
-    Raises:
-        ValueError: если имя исполнителя пустое.
-    """
-    if not name.strip():
-        raise ValueError("Имя исполнителя не может быть пустым")
-    artist = {
-        "id": next_id(artists),
-        "name": name.strip(),
-        "country": country.strip(),
-        "genre": genre.strip(),
-    }
+) -> Artist:
+    """Создать исполнителя, добавить в коллекцию и вернуть его."""
+    artist = Artist(next_id(artists), name, country, genre)
     artists.append(artist)
     return artist
 
 
-def find_artist(artists: List[Dict], query: str) -> List[Dict]:
+def find_artist(artists: List[Artist], query: str) -> List[Artist]:
     """Найти исполнителей по подстроке имени (без учёта регистра)."""
     query = query.strip().lower()
-    return [artist for artist in artists if query in artist["name"].lower()]
+    return [artist for artist in artists if query in artist.name.lower()]
 
 
 def find_artist_by_id(
-    artists: List[Dict],
+    artists: List[Artist],
     artist_id: int,
-) -> Optional[Dict]:
+) -> Optional[Artist]:
     """Найти исполнителя по идентификатору."""
     for artist in artists:
-        if artist["id"] == artist_id:
+        if artist.id == artist_id:
             return artist
     return None
 
 
 def find_artist_by_name(
-    artists: List[Dict],
+    artists: List[Artist],
     name: str,
-) -> Optional[Dict]:
+) -> Optional[Artist]:
     """Найти исполнителя по точному имени (без учёта регистра)."""
     name = name.strip().lower()
     for artist in artists:
-        if artist["name"].lower() == name:
+        if artist.name.lower() == name:
             return artist
     return None
 
 
-def get_artist_name(artists: List[Dict], artist_id: int) -> str:
-    """Вернуть имя исполнителя по идентификатору."""
-    artist = find_artist_by_id(artists, artist_id)
-    return artist["name"] if artist else "Неизвестный исполнитель"
-
-
-def show_artists(artists: List[Dict]) -> None:
+def show_artists(artists: List[Artist]) -> None:
     """Вывести список исполнителей."""
     if not artists:
         print("Список исполнителей пуст.")
         return
     for artist in artists:
-        print(
-            f"[{artist['id']}] {artist['name']} ({artist['country']}), "
-            f"жанр: {artist['genre']}"
-        )
+        print(f"[{artist.id}] {artist}")

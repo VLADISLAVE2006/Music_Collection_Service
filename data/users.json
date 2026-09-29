@@ -1,3 +1,17 @@
 [
-  {"id": 1, "name": "Владислав", "registered_at": "2026-09-01"}
+  {
+    "id": 1,
+    "name": "Владислав",
+    "registered_at": "2026-09-01"
+  },
+  {
+    "id": 2,
+    "name": "Влад",
+    "registered_at": "2026-09-22"
+  },
+  {
+    "id": 3,
+    "name": "Vlad",
+    "registered_at": "2026-09-22"
+  }
 ]

@@ -1,4 +1,3 @@
-"""Сервис музыкальных коллекций — консольное приложение."""
 from datetime import date
 from pathlib import Path
 from typing import List, Optional, Tuple
