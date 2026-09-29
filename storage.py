@@ -179,7 +179,10 @@ def load_collections(
                 if album is None:
                     print(f"Альбом id={album_id} не найден, пропущен.")
                     continue
-                collection.add_album(album)
+                try:
+                    collection.add_album(album)
+                except ValueError as error:
+                    print(f"Альбом id={album_id} пропущен: {error}")
             collections.append(collection)
         except (KeyError, TypeError, ValueError) as error:
             _skip_message("коллекция", error)

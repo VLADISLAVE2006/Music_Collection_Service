@@ -86,3 +86,15 @@ def test_broken_json_returns_empty_list(tmp_path):
     path = tmp_path / "users.json"
     path.write_text("{not json", encoding="utf-8")
     assert load_users(path) == []
+
+
+def test_duplicate_album_id_does_not_drop_collection(tmp_path):
+    user, _, album, _ = make_data()
+    path = tmp_path / "collections.json"
+    path.write_text(
+        '[{"id": 1, "user_id": 1, "album_ids": [1, 1]}]',
+        encoding="utf-8",
+    )
+    loaded = load_collections(path, [user], [album])
+    assert len(loaded) == 1
+    assert loaded[0].albums == [album]
