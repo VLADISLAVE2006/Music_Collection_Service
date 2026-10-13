@@ -1,7 +1,8 @@
-# Music Collection Service — сервис музыкальных коллекций
+# Maestro — сервис музыкальных коллекций
 
-Консольное приложение для управления личной музыкальной коллекцией:
-альбомы, исполнители, оценки, статус прослушивания и рекомендации.
+Приложение для управления личной музыкальной коллекцией: альбомы,
+исполнители, оценки, статус прослушивания и рекомендации. Есть
+консольная версия (ПР1–ПР3) и веб-интерфейс на Django (ПР5).
 
 ## Назначение
 
@@ -113,9 +114,32 @@ MyProject/
 ├── pytest.ini
 ├── .flake8
 ├── .gitignore
+├── manage.py
 ├── main.py
 ├── storage.py
 ├── utils.py
+├── maestro/
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   ├── asgi.py
+│   └── wsgi.py
+├── homepage/
+│   ├── admin.py, apps.py, models.py, tests.py
+│   ├── urls.py
+│   └── views.py
+├── albums/
+│   ├── admin.py, apps.py, models.py, tests.py
+│   ├── urls.py
+│   └── views.py
+├── artists/
+│   ├── admin.py, apps.py, models.py, tests.py
+│   ├── urls.py
+│   └── views.py
+├── library/
+│   ├── admin.py, apps.py, models.py, tests.py
+│   ├── urls.py
+│   └── views.py
 ├── models/
 │   ├── __init__.py
 │   ├── users.py
@@ -132,8 +156,43 @@ MyProject/
     ├── test_users.py
     ├── test_albums.py
     ├── test_collection.py
-    └── test_storage.py
+    ├── test_storage.py
+    └── test_web.py
 ```
+
+## Веб-интерфейс (Django)
+
+Проект использует Django 5.2. Django-проект `maestro` хранит настройки и
+маршрутизацию верхнего уровня, а функциональность разделена на четыре
+приложения. Приложение коллекций названо `library`, а не `collections`,
+чтобы не затенять стандартный модуль Python `collections`.
+
+| URL | View-функция | Страница |
+| --- | --- | --- |
+| `/` | `homepage.views.index` | главная, навигация |
+| `/albums/` | `albums.views.albums` | список альбомов |
+| `/albums/<int:album_id>/` | `albums.views.album_detail` | карточка альбома |
+| `/artists/` | `artists.views.artists` | список исполнителей |
+| `/artists/<int:artist_id>/` | `artists.views.artist_detail` | исполнитель и его альбомы |
+| `/collections/` | `library.views.collections` | список коллекций |
+| `/collections/<int:collection_id>/` | `library.views.collection_detail` | статистика и альбомы коллекции |
+
+Если объект с указанным id не найден, страница возвращает код 404.
+
+Как это устроено:
+
+- `homepage.views.page()` собирает общий HTML-каркас: кодировку, Bootstrap
+  5.3 (CDN) и навигацию; остальные приложения импортируют её;
+- `homepage.views.not_found()` формирует страницу с кодом 404;
+- view-функции загружают данные через `main.load_data()` (тот же
+  `storage.py`, что и в консольной версии), находят объекты функциями
+  `find_*_by_id()` и берут статусы, звёзды и статистику из классов и
+  функций ПР3, не дублируя логику;
+- пользовательские данные экранируются через `html.escape`.
+
+Django ORM, формы и авторизация на этом этапе не используются: данные
+по-прежнему хранятся в JSON. Операции изменения данных (добавление,
+удаление, оценка) остаются в консольной версии.
 
 ## Модули и функции
 
@@ -143,7 +202,9 @@ MyProject/
 | `models/users.py` | класс `User` (`from_data`); `add_user`, `find_user`, `find_user_by_id`, `find_user_by_name`, `show_users` |
 | `models/artists.py` | класс `Artist` (`from_data`); `add_artist`, `find_artist`, `find_artist_by_id`, `find_artist_by_name`, `show_artists` |
 | `models/albums.py` | класс `Album` (`validate_rating`, `validate_year`, `rate`, `mark_listened`, `age`); `get_rating_stars`, `get_album_status`, `get_recommendation`, `find_album`, `find_album_by_id`, `filter_albums_by_genre`, `sort_albums`, `show_albums` |
-| `models/collection.py` | класс `Collection` (`contains`, `add_album`, `remove_album`, `total_albums`, `total_songs`, `total_artists`, `listened_count`, `average_rating`, `favorite_genre`); `create_collection`, `get_user_collection`, `add_album_to_collection`, `remove_album_from_collection`, `get_collection_recommendation`, `show_statistics` |
+| `models/collection.py` | класс `Collection` (`contains`, `add_album`, `remove_album`, `total_albums`, `total_songs`, `total_artists`, `listened_count`, `average_rating`, `favorite_genre`); `create_collection`, `get_user_collection`, `find_collection_by_id`, `add_album_to_collection`, `remove_album_from_collection`, `get_collection_recommendation`, `show_statistics` |
+| `maestro/` | настройки и корневые маршруты Django-проекта |
+| `homepage/`, `albums/`, `artists/`, `library/` | Django-приложения: `urls.py` и `views.py` со страницами |
 | `storage.py` | `load_*` / `save_*` для пользователей, исполнителей, альбомов и коллекций |
 | `utils.py` | `input_int`, `input_text`, `next_id` |
 
@@ -153,8 +214,24 @@ MyProject/
 
 ## Запуск программы
 
+Установка зависимостей:
+
 ```text
 pip install -r requirements.txt
+```
+
+Веб-версия (Django):
+
+```text
+python manage.py migrate
+python manage.py runserver
+```
+
+После запуска открыть в браузере `http://127.0.0.1:8000/`.
+
+Консольная версия:
+
+```text
 python main.py
 ```
 
@@ -164,6 +241,9 @@ python main.py
 pytest -v
 ```
 
+Тесты покрывают классы предметной области, хранилище и веб-страницы
+(коды ответа 200 и 404, содержимое страниц, связи между объектами).
+
 ## Проверка качества кода
 
 ```text
@@ -172,10 +252,14 @@ flake8 .
 
 ## План развития
 
+Реализовано: консольное приложение (ПР1–ПР3), веб-интерфейс на Django
+с просмотром альбомов, исполнителей и коллекций (ПР5).
+
 На следующих этапах планируется:
 
-- разработка веб-приложения на Django;
-- подключение базы данных;
+- переход на шаблоны Django и отказ от функции `page()`;
+- перенос сущностей в Django ORM и подключение базы данных;
+- формы создания и изменения данных;
 - реализация пользователей и авторизации;
 - разработка API;
 - контейнеризация приложения;
