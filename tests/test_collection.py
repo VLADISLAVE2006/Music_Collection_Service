@@ -6,6 +6,7 @@ from models import Album, Artist, Collection, User
 from models.collection import (
     add_album_to_collection,
     create_collection,
+    find_collection_by_id,
     get_collection_recommendation,
     get_user_collection,
     remove_album_from_collection,
@@ -116,3 +117,10 @@ def test_create_and_get_user_collection(user):
     assert get_user_collection(collections, user) is created
     other = User(2, "Мария", date(2026, 9, 2))
     assert get_user_collection(collections, other) is None
+
+
+def test_find_collection_by_id(user):
+    collections = []
+    created = create_collection(collections, user)
+    assert find_collection_by_id(collections, created.id) is created
+    assert find_collection_by_id(collections, 99) is None

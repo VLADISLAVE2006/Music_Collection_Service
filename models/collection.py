@@ -133,6 +133,17 @@ def get_user_collection(
     return None
 
 
+def find_collection_by_id(
+    collections: List[Collection],
+    collection_id: int,
+) -> Optional[Collection]:
+    """Найти коллекцию по идентификатору."""
+    for collection in collections:
+        if collection.id == collection_id:
+            return collection
+    return None
+
+
 def add_album_to_collection(
     collection: Collection,
     albums: List[Album],
