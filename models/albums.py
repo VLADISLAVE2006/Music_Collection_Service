@@ -91,6 +91,11 @@ class Album:
         """Вернуть возраст альбома в годах."""
         return date.today().year - self.release_year
 
+    @property
+    def rating_stars(self) -> str:
+        """Оценка альбома в виде звёзд (для шаблонов)."""
+        return get_rating_stars(self.rating)
+
     def __str__(self) -> str:
         """Строковое представление альбома."""
         listened = "прослушан" if self.is_listened else "не прослушан"

@@ -146,3 +146,9 @@ def test_sort_albums(albums):
     assert [a.id for a in sort_albums(albums, "title")] == [1, 2, 3]
     with pytest.raises(ValueError):
         sort_albums(albums, "unknown")
+
+
+def test_rating_stars_property(album):
+    assert album.rating_stars == "☆☆☆☆☆"
+    album.rate(4)
+    assert album.rating_stars == "★★★★☆"
