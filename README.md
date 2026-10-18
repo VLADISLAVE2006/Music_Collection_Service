@@ -101,9 +101,10 @@ User ──владеет──> Collection ──содержит──> Album 
   `songs_count`, `rating`, `is_listened`, `user_id`;
 - `collections.json` — `id`, `user_id`, `album_ids`.
 
-При запуске данные читаются из файлов, при завершении — сохраняются.
-Некорректный JSON и отсутствующие файлы не приводят к аварийному
-завершению программы.
+Консольная версия читает эти файлы при запуске и сохраняет при
+завершении. Некорректный JSON и отсутствующие файлы не приводят к
+аварийному завершению программы. Для веб-интерфейса JSON служит
+источником данных, перенесённых в базу SQLite (раздел «База данных»).
 
 ## Структура проекта
 
@@ -118,6 +119,13 @@ MyProject/
 ├── main.py
 ├── storage.py
 ├── utils.py
+├── db/
+│   ├── __init__.py
+│   ├── database.py
+│   └── import_json.py
+├── sql/
+│   ├── schema.sql
+│   └── queries.sql
 ├── maestro/
 │   ├── __init__.py
 │   ├── settings.py
@@ -130,6 +138,8 @@ MyProject/
 │   └── includes/
 │       └── navigation.html
 ├── homepage/
+│   ├── templatetags/
+│   │   └── maestro_tags.py
 │   ├── static/homepage/
 │   │   ├── css/style.css
 │   │   ├── js/main.js
@@ -142,6 +152,8 @@ MyProject/
 │   ├── templates/albums/
 │   │   ├── album_list.html
 │   │   ├── album_detail.html
+│   │   ├── search.html
+│   │   ├── statistics.html
 │   │   └── includes/
 │   │       ├── album_card.html
 │   │       └── album_status.html
@@ -171,13 +183,15 @@ MyProject/
 │   ├── users.json
 │   ├── artists.json
 │   ├── albums.json
-│   └── collections.json
+│   ├── collections.json
+│   └── maestro.sqlite
 └── tests/
     ├── test_artists.py
     ├── test_users.py
     ├── test_albums.py
     ├── test_collection.py
     ├── test_storage.py
+    ├── test_db.py
     └── test_web.py
 ```
 
@@ -196,6 +210,8 @@ MyProject/
 | `/` | `homepage:index` | `homepage.views.index` | `homepage/index.html` |
 | `/albums/` | `albums:list` | `albums.views.albums` | `albums/album_list.html` |
 | `/albums/<int:album_id>/` | `albums:detail` | `albums.views.album_detail` | `albums/album_detail.html` |
+| `/albums/search/` | `albums:search` | `albums.views.search` | `albums/search.html` |
+| `/albums/statistics/` | `albums:statistics` | `albums.views.statistics` | `albums/statistics.html` |
 | `/artists/` | `artists:list` | `artists.views.artists` | `artists/artist_list.html` |
 | `/artists/<int:artist_id>/` | `artists:detail` | `artists.views.artist_detail` | `artists/artist_detail.html` |
 | `/collections/` | `library:list` | `library.views.collections` | `library/collection_list.html` |
@@ -243,9 +259,74 @@ HTML больше не формируется в Python: view-функции з�
   `{% load static %}` и `{% static %}`.
 - Данные пользователей экранируются автоматически средствами шаблонов.
 
-Django ORM, формы и авторизация пока не используются: данные хранятся в
-JSON, объекты создаются классами из `models/`. Операции изменения данных
-(добавление, удаление, оценка) остаются в консольной версии.
+Django ORM, формы и авторизация пока не используются. Операции изменения
+данных (добавление, удаление, оценка) остаются в консольной версии.
+
+## База данных SQLite (ПР7)
+
+Веб-страницы получают данные из реляционной базы `data/maestro.sqlite`
+средствами `sqlite3` и SQL-запросов. JSON-файлы остаются источником данных,
+который переносится в базу, и данными консольной версии.
+
+```text
+SQLite → SQL → sqlite3 → Django view → контекст → шаблон → страница
+```
+
+### Таблицы и ключи
+
+| Таблица | Поля (тип) | Ключи |
+| --- | --- | --- |
+| `users` | `id` INTEGER, `name` TEXT, `registered_at` TEXT (YYYY-MM-DD) | PK `id` |
+| `artists` | `id` INTEGER, `name` TEXT, `country` TEXT, `genre` TEXT | PK `id` |
+| `albums` | `id` INTEGER, `title` TEXT, `artist_id` INTEGER, `release_year` INTEGER, `genre` TEXT, `songs_count` INTEGER, `rating` INTEGER (NULL — нет оценки, 1–5), `is_listened` INTEGER (0/1), `user_id` INTEGER | PK `id`; FK `artist_id` → `artists.id`, `user_id` → `users.id` |
+| `collections` | `id` INTEGER, `user_id` INTEGER | PK `id`; FK `user_id` → `users.id` |
+| `collection_albums` | `collection_id` INTEGER, `album_id` INTEGER | составной PK; FK → `collections.id`, `albums.id` |
+
+Связь «коллекция — альбомы» многие ко многим, поэтому список `album_ids`
+из JSON хранится в отдельной таблице `collection_albums`. Логическое
+значение `is_listened` хранится числом 0 или 1, оценка может быть `NULL`.
+
+### Файлы слоя базы данных
+
+- `sql/schema.sql` — создание таблиц (`CREATE TABLE IF NOT EXISTS`,
+  повторный запуск безопасен);
+- `sql/queries.sql` — 21 проверенный запрос с комментариями: списки,
+  `WHERE`, `JOIN`, `COUNT`/`AVG`/`SUM`, `GROUP BY`, `HAVING`, подзапрос
+  `NOT IN`, `DISTINCT`, `LIMIT`/`OFFSET`, проверка `NULL`;
+- `db/database.py` — `get_connection()` включает проверку внешних ключей
+  (`PRAGMA foreign_keys = ON`), `create_schema()` выполняет `schema.sql`;
+- `db/import_json.py` — перенос JSON в таблицы через `executemany()` и
+  параметры `?`, с `commit()` и `rollback()` при ошибке; перед импортом
+  таблицы очищаются, поэтому скрипт можно запускать повторно.
+
+Пересоздание базы и проверка запросов (из корня проекта):
+
+```text
+python -m db.import_json
+sqlite3 data/maestro.sqlite < sql/queries.sql
+```
+
+### SQL в веб-приложении
+
+Запросы сначала проверяются в SQLite CLI и сохраняются в
+`sql/queries.sql`, затем те же тексты используются в представлениях
+(`conn.execute(запрос, [параметры])`). Значения передаются только через
+параметры `?`, f-строки для подстановки значений не используются. Для
+доступа к полям по именам задан `conn.row_factory = sqlite3.Row`.
+Тест `test_views_use_the_same_sql_as_queries_file` следит, чтобы SQL в
+представлениях совпадал с `queries.sql`.
+
+| Страница | Что получает из SQLite |
+| --- | --- |
+| `/albums/` | `JOIN` альбомов и исполнителей |
+| `/albums/<id>/` | карточка альбома: `JOIN`, `WHERE id = ?` |
+| `/albums/search/` | поиск по жанру, оценке и названию (параметры `?`) |
+| `/albums/statistics/` | `COUNT`, `AVG`, `SUM`, `GROUP BY`, `HAVING` |
+| `/artists/`, `/artists/<id>/` | исполнители с числом альбомов, альбомы исполнителя |
+| `/collections/`, `/collections/<id>/` | коллекции, агрегатная статистика, любимый жанр |
+
+Звёзды оценки выводятся шаблонным фильтром `stars`
+(`homepage/templatetags/maestro_tags.py`), а не SQL.
 
 ## Модули и функции
 
@@ -259,6 +340,8 @@ JSON, объекты создаются классами из `models/`. Опе�
 | `maestro/` | настройки и корневые маршруты Django-проекта |
 | `homepage/`, `albums/`, `artists/`, `library/` | Django-приложения: `urls.py`, `views.py`, шаблоны (`templates/`), статика (`homepage/static/`) |
 | `templates/` | базовый шаблон `base.html`, `404.html`, навигация |
+| `db/` | слой базы данных: `database.py` (подключение), `import_json.py` (перенос JSON в SQLite) |
+| `sql/` | `schema.sql` (таблицы), `queries.sql` (запросы проекта) |
 | `storage.py` | `load_*` / `save_*` для пользователей, исполнителей, альбомов и коллекций |
 | `utils.py` | `input_int`, `input_text`, `next_id` |
 
@@ -274,9 +357,11 @@ JSON, объекты создаются классами из `models/`. Опе�
 pip install -r requirements.txt
 ```
 
-Веб-версия (Django):
+Веб-версия (Django): сначала создать и заполнить базу SQLite, затем
+запустить сервер:
 
 ```text
+python -m db.import_json
 python manage.py migrate
 python manage.py runserver --insecure
 ```
@@ -309,7 +394,11 @@ pytest -v
 Тесты покрывают классы предметной области, хранилище и веб-страницы:
 коды ответа 200 и 404, используемые шаблоны и наследование, контекст,
 пространства имён URL, фильтры, обработку пустых списков, экранирование
-HTML и поиск статических файлов.
+HTML и поиск статических файлов. Тесты `tests/test_db.py` проверяют схему
+и ключи, импорт из JSON (количество записей, повторный запуск, NULL),
+выполнение всех запросов, их объём и виды, защиту от SQL-инъекций и
+совпадение SQL в представлениях с `sql/queries.sql`. Веб-тесты работают
+на временной базе.
 
 ## Проверка качества кода
 
@@ -320,11 +409,12 @@ flake8 .
 ## План развития
 
 Реализовано: консольное приложение (ПР1–ПР3), веб-интерфейс на Django
-(ПР5), перевод веб-части на шаблоны Django со статическими файлами (ПР6).
+(ПР5), перевод веб-части на шаблоны Django со статическими файлами (ПР6),
+база данных SQLite, SQL-запросы и страницы на данных из базы (ПР7).
 
 На следующих этапах планируется:
 
-- перенос сущностей в Django ORM и подключение базы данных;
+- переход от SQL-запросов к Django ORM и моделям Django;
 - формы создания и изменения данных;
 - реализация пользователей и авторизации;
 - разработка API;
