@@ -9,6 +9,8 @@
 
     <p>
         Всего альбомов: {{ albums|length }}
+        ·
+        <a href="{% url 'albums:search' %}">Найти альбом</a>
     </p>
 
     {% for album in albums %}

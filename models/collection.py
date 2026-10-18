@@ -186,15 +186,19 @@ def remove_album_from_collection(
     return True
 
 
-def get_collection_recommendation(collection: Collection) -> str:
-    """Сформировать рекомендацию на основе оценок коллекции."""
-    genre = collection.favorite_genre()
+def recommendation_for_genre(genre: Optional[str]) -> str:
+    """Сформировать рекомендацию по любимому жанру (None — нет оценок)."""
     if genre is None:
         return "Оцените несколько альбомов, чтобы получить рекомендацию"
     return (
         f"Если вам нравится {genre}, "
         "советуем послушать похожие альбомы!"
     )
+
+
+def get_collection_recommendation(collection: Collection) -> str:
+    """Сформировать рекомендацию на основе оценок коллекции."""
+    return recommendation_for_genre(collection.favorite_genre())
 
 
 def show_statistics(collection: Collection) -> None:

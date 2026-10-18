@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load maestro_tags %}
 
 {% block title %}
     {% if album %}
@@ -18,8 +19,8 @@
 
                 <p class="card-text">
                     <strong>Исполнитель:</strong>
-                    <a href="{% url 'artists:detail' album.artist.id %}">
-                        {{ album.artist.name }}
+                    <a href="{% url 'artists:detail' album.artist_id %}">
+                        {{ album.artist_name }}
                     </a>
                 </p>
 
@@ -38,7 +39,7 @@
 
                 <p class="card-text">
                     <strong>Оценка:</strong>
-                    {{ album.rating_stars }}
+                    {{ album.rating|stars }}
                     {% if album.rating %}
                         ({{ album.rating }}/{{ max_rating }})
                     {% else %}
@@ -55,7 +56,7 @@
                 <p class="card-text">{{ recommendation }}</p>
 
                 <p class="card-text text-muted">
-                    Владелец: {{ album.user.name }}
+                    Владелец: {{ album.owner_name }}
                 </p>
             </div>
         </div>

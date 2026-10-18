@@ -9,6 +9,7 @@ from models.collection import (
     find_collection_by_id,
     get_collection_recommendation,
     get_user_collection,
+    recommendation_for_genre,
     remove_album_from_collection,
 )
 
@@ -124,3 +125,8 @@ def test_find_collection_by_id(user):
     created = create_collection(collections, user)
     assert find_collection_by_id(collections, created.id) is created
     assert find_collection_by_id(collections, 99) is None
+
+
+def test_recommendation_for_genre():
+    assert "Оцените" in recommendation_for_genre(None)
+    assert "Если вам нравится Rock" in recommendation_for_genre("Rock")

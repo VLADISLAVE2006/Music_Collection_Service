@@ -1,3 +1,4 @@
+{% load maestro_tags %}
 <article class="card album-card mb-3">
     <div class="card-body">
         <h2 class="card-title h5">
@@ -5,12 +6,12 @@
         </h2>
 
         <p class="card-text">
-            {{ album.artist.name }} · {{ album.release_year }}
+            {{ album.artist_name }} · {{ album.release_year }}
             · {{ album.genre }}
         </p>
 
         <p class="card-text">
-            <span class="album-stars">{{ album.rating_stars }}</span>
+            <span class="album-stars">{{ album.rating|stars }}</span>
             {% include "albums/includes/album_status.html" %}
         </p>
 

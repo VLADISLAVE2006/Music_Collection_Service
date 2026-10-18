@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Поиск альбомов – Maestro
+{% endblock %}
+
+{% block content %}
+    <h1>Поиск альбомов</h1>
+
+    <form method="get" class="row g-2 align-items-end mb-4">
+        <div class="col-md-3">
+            <label for="genre" class="form-label">Жанр</label>
+            <select id="genre" name="genre" class="form-select">
+                <option value="">Любой</option>
+                {% for item in genres %}
+                    <option
+                        value="{{ item.genre }}"
+                        {% if item.genre == genre %}selected{% endif %}
+                    >
+                        {{ item.genre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label for="min_rating" class="form-label">
+                Минимальная оценка
+            </label>
+            <select id="min_rating" name="min_rating" class="form-select">
+                {% for value in ratings %}
+                    <option
+                        value="{{ value }}"
+                        {% if value == min_rating %}selected{% endif %}
+                    >
+                        {% if value == 0 %}любая{% else %}от {{ value }}{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label for="title" class="form-label">Часть названия</label>
+            <input
+                type="text"
+                id="title"
+                name="title"
+                value="{{ title }}"
+                class="form-control"
+            >
+        </div>
+
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">
+                Найти
+            </button>
+        </div>
+    </form>
+
+    {% if submitted %}
+        <p>Найдено альбомов: {{ albums|length }}</p>
+
+        {% for album in albums %}
+            {% include "albums/includes/album_card.html" %}
+        {% empty %}
+            <p>По заданным условиям альбомов не найдено.</p>
+        {% endfor %}
+    {% endif %}
+
+    <a href="{% url 'albums:list' %}" class="btn btn-outline-secondary mt-3">
+        ← к списку альбомов
+    </a>
+{% endblock %}

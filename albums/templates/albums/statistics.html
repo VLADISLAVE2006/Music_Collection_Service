@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Статистика – Maestro
+{% endblock %}
+
+{% block content %}
+    <h1>Статистика</h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <p class="card-text">
+                <strong>Всего альбомов:</strong> {{ totals.albums_count }}
+            </p>
+            <p class="card-text">
+                <strong>Из них с оценкой:</strong> {{ totals.rated_count }}
+            </p>
+            <p class="card-text">
+                <strong>Средняя оценка:</strong>
+                {% if totals.average_rating is not None %}
+                    {{ totals.average_rating|floatformat:2 }}/{{ max_rating }}
+                {% else %}
+                    нет оценок
+                {% endif %}
+            </p>
+            <p class="card-text">
+                <strong>Всего песен:</strong> {{ totals.songs_count }}
+            </p>
+        </div>
+    </div>
+
+    <h2 class="h4">Альбомы по жанрам</h2>
+    <table class="table table-striped mb-4">
+        <thead>
+            <tr>
+                <th>Жанр</th>
+                <th>Альбомов</th>
+                <th>Средняя оценка</th>
+                <th>Песен</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in genres %}
+                <tr>
+                    <td>{{ item.genre }}</td>
+                    <td>{{ item.albums_count }}</td>
+                    <td>
+                        {% if item.average_rating is not None %}
+                            {{ item.average_rating|floatformat:1 }}
+                        {% else %}
+                            нет оценок
+                        {% endif %}
+                    </td>
+                    <td>{{ item.songs_count }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">Данные отсутствуют.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 class="h4">Исполнители с несколькими альбомами</h2>
+    <ul class="list-group">
+        {% for item in artists %}
+            <li class="list-group-item d-flex justify-content-between">
+                {{ item.artist_name }}
+                <span class="badge bg-primary">
+                    альбомов: {{ item.albums_count }}
+                </span>
+            </li>
+        {% empty %}
+            <li class="list-group-item text-muted">
+                Исполнителей с несколькими альбомами нет.
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -15,10 +15,10 @@
         {% for collection in collections %}
             <li class="list-group-item d-flex justify-content-between">
                 <a href="{% url 'library:detail' collection.id %}">
-                    Коллекция пользователя {{ collection.user.name }}
+                    Коллекция пользователя {{ collection.user_name }}
                 </a>
                 <span class="badge bg-primary">
-                    альбомов: {{ collection.total_albums }}
+                    альбомов: {{ collection.albums_count }}
                 </span>
             </li>
         {% empty %}
