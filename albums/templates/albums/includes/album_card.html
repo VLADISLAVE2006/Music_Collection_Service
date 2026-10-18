@@ -1,0 +1,24 @@
+<article class="card album-card mb-3">
+    <div class="card-body">
+        <h2 class="card-title h5">
+            {{ album.title|default:"Без названия" }}
+        </h2>
+
+        <p class="card-text">
+            {{ album.artist.name }} · {{ album.release_year }}
+            · {{ album.genre }}
+        </p>
+
+        <p class="card-text">
+            <span class="album-stars">{{ album.rating_stars }}</span>
+            {% include "albums/includes/album_status.html" %}
+        </p>
+
+        <a
+            href="{% url 'albums:detail' album.id %}"
+            class="btn btn-primary"
+        >
+            Подробнее
+        </a>
+    </div>
+</article>

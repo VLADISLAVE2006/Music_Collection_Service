@@ -1,9 +1,7 @@
 """Страницы музыкальных коллекций пользователей."""
-from html import escape
-
 from django.http import HttpRequest, HttpResponse
+from django.shortcuts import render
 
-from homepage.views import not_found, page
 from main import load_data
 from models.albums import MAX_RATING, get_rating_stars
 from models.collection import (
@@ -15,22 +13,10 @@ from models.collection import (
 def collections(request: HttpRequest) -> HttpResponse:
     """Список коллекций всех пользователей."""
     _, _, _, collections_list = load_data()
-    items = ""
-    for collection in collections_list:
-        text = escape(f"Коллекция пользователя {collection.user.name}")
-        items += f"""
-        <li class="list-group-item d-flex justify-content-between">
-            <a href="/collections/{collection.id}/">{text}</a>
-            <span class="badge bg-primary">
-                альбомов: {collection.total_albums}
-            </span>
-        </li>
-        """
-    content = f"""
-    <h1>Коллекции</h1>
-    <ul class="list-group">{items}</ul>
-    """
-    return HttpResponse(page("Maestro — коллекции", content))
+    context = {
+        "collections": collections_list,
+    }
+    return render(request, "library/collection_list.html", context)
 
 
 def collection_detail(
@@ -40,55 +26,19 @@ def collection_detail(
     """Коллекция: статистика и альбомы; при отсутствии — код 404."""
     _, _, _, collections_list = load_data()
     collection = find_collection_by_id(collections_list, collection_id)
-    if collection is None:
-        return not_found(
-            "Коллекция не найдена", "/collections/", "к списку коллекций"
-        )
-    average = collection.average_rating
-    average_text = (
-        f"{get_rating_stars(round(average))} ({average:.1f}/{MAX_RATING})"
-        if average is not None else "нет оценок"
+    context = {
+        "collection": collection,
+        "max_rating": MAX_RATING,
+    }
+    if collection is not None:
+        average = collection.average_rating
+        context["average"] = average
+        if average is not None:
+            context["average_stars"] = get_rating_stars(round(average))
+        context["recommendation"] = get_collection_recommendation(collection)
+    return render(
+        request,
+        "library/collection_detail.html",
+        context,
+        status=404 if collection is None else 200,
     )
-    items = ""
-    for album in collection.albums:
-        text = escape(f"{album.title} — {album.artist.name}")
-        items += f"""
-        <li class="list-group-item d-flex justify-content-between">
-            <a href="/albums/{album.id}/">{text}</a>
-            <span>{get_rating_stars(album.rating)}</span>
-        </li>
-        """
-    albums_block = (
-        f'<ul class="list-group">{items}</ul>' if items
-        else '<p class="text-muted">В коллекции пока нет альбомов.</p>'
-    )
-    content = f"""
-    <h1>Коллекция: {escape(collection.user.name)}</h1>
-    <div class="card mb-3">
-        <div class="card-body">
-            <p class="card-text">
-                <strong>Всего альбомов:</strong> {collection.total_albums}
-            </p>
-            <p class="card-text">
-                <strong>Всего песен:</strong> {collection.total_songs}
-            </p>
-            <p class="card-text">
-                <strong>Исполнителей:</strong> {collection.total_artists}
-            </p>
-            <p class="card-text">
-                <strong>Прослушано:</strong> {collection.listened_count}
-            </p>
-            <p class="card-text">
-                <strong>Средняя оценка:</strong> {average_text}
-            </p>
-            <p class="card-text">
-                {escape(get_collection_recommendation(collection))}
-            </p>
-        </div>
-    </div>
-    {albums_block}
-    <a href="/collections/" class="btn btn-outline-secondary mt-3">
-        ← к списку коллекций
-    </a>
-    """
-    return HttpResponse(page(f"Коллекция: {collection.user.name}", content))

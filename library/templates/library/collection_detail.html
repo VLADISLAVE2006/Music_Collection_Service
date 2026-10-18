@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if collection %}
+        Коллекция: {{ collection.user.name }} – Maestro
+    {% else %}
+        Коллекция не найдена – Maestro
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if collection %}
+        <h1>Коллекция: {{ collection.user.name }}</h1>
+
+        <p class="text-muted">
+            Пользователь зарегистрирован
+            {{ collection.user.registered_at|date:"d.m.Y" }}
+        </p>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <p class="card-text">
+                    <strong>Всего альбомов:</strong>
+                    {{ collection.total_albums }}
+                </p>
+                <p class="card-text">
+                    <strong>Всего песен:</strong> {{ collection.total_songs }}
+                </p>
+                <p class="card-text">
+                    <strong>Исполнителей:</strong>
+                    {{ collection.total_artists }}
+                </p>
+                <p class="card-text">
+                    <strong>Прослушано:</strong>
+                    {{ collection.listened_count }}
+                </p>
+                <p class="card-text">
+                    <strong>Средняя оценка:</strong>
+                    {% if average is not None %}
+                        {{ average_stars }}
+                        ({{ average|floatformat:1 }}/{{ max_rating }})
+                    {% else %}
+                        нет оценок
+                    {% endif %}
+                </p>
+                <p class="card-text">{{ recommendation }}</p>
+            </div>
+        </div>
+
+        <ul class="list-group">
+            {% for album in collection.albums %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <a href="{% url 'albums:detail' album.id %}">
+                        {{ album.title }} — {{ album.artist.name }}
+                    </a>
+                    <span>
+                        {{ album.rating_stars }}
+                        {% include "albums/includes/album_status.html" %}
+                    </span>
+                </li>
+            {% empty %}
+                <li class="list-group-item text-muted">
+                    В коллекции пока нет альбомов.
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <h1 class="text-danger">Коллекция не найдена</h1>
+        <p>Коллекция с указанным идентификатором отсутствует.</p>
+    {% endif %}
+
+    <a href="{% url 'library:list' %}" class="btn btn-outline-secondary mt-3">
+        ← к списку коллекций
+    </a>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Коллекции – Maestro
+{% endblock %}
+
+{% block content %}
+    <h1>Коллекции</h1>
+
+    <p>
+        Всего коллекций: {{ collections|length }}
+    </p>
+
+    <ul class="list-group">
+        {% for collection in collections %}
+            <li class="list-group-item d-flex justify-content-between">
+                <a href="{% url 'library:detail' collection.id %}">
+                    Коллекция пользователя {{ collection.user.name }}
+                </a>
+                <span class="badge bg-primary">
+                    альбомов: {{ collection.total_albums }}
+                </span>
+            </li>
+        {% empty %}
+            <li class="list-group-item">Коллекции не найдены.</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

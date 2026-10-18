@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Страница не найдена – Maestro
+{% endblock %}
+
+{% block content %}
+    <p class="display-1 text-danger fw-bold">404</p>
+    <h1>Страница не найдена</h1>
+    <p class="lead">
+        Такого адреса нет. Проверьте ссылку или вернитесь на главную.
+    </p>
+    <a href="{% url 'homepage:index' %}" class="btn btn-outline-secondary">
+        ← на главную
+    </a>
+{% endblock %}

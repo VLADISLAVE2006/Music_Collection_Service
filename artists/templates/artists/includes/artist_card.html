@@ -1,0 +1,18 @@
+<article class="card artist-card mb-3">
+    <div class="card-body">
+        <h2 class="card-title h5">
+            {{ artist.name|default:"Без имени" }}
+        </h2>
+
+        <p class="card-text">
+            {{ artist.country }} · {{ artist.genre }}
+        </p>
+
+        <a
+            href="{% url 'artists:detail' artist.id %}"
+            class="btn btn-primary"
+        >
+            Подробнее
+        </a>
+    </div>
+</article>

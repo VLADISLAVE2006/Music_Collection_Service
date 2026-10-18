@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Альбомы – Maestro
+{% endblock %}
+
+{% block content %}
+    <h1>Альбомы</h1>
+
+    <p>
+        Всего альбомов: {{ albums|length }}
+    </p>
+
+    {% for album in albums %}
+        {% include "albums/includes/album_card.html" %}
+    {% empty %}
+        <p>Альбомы не найдены.</p>
+    {% endfor %}
+{% endblock %}

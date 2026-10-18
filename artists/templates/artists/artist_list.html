@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Исполнители – Maestro
+{% endblock %}
+
+{% block content %}
+    <h1>Исполнители</h1>
+
+    <p>
+        Всего исполнителей: {{ artists|length }}
+    </p>
+
+    {% for artist in artists %}
+        {% include "artists/includes/artist_card.html" %}
+    {% empty %}
+        <p>Исполнители не найдены.</p>
+    {% endfor %}
+{% endblock %}

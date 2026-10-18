@@ -1,0 +1,9 @@
+{% if album.is_listened %}
+    <span class="badge bg-success album-status album-status-listened">
+        Прослушан
+    </span>
+{% else %}
+    <span class="badge bg-secondary album-status album-status-new">
+        Не прослушан
+    </span>
+{% endif %}

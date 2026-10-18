@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Главная – Maestro
+{% endblock %}
+
+{% block content %}
+    <h1 class="display-4">Maestro</h1>
+    <p class="lead">
+        Сервис музыкальных коллекций: альбомы, исполнители, оценки
+        и рекомендации.
+    </p>
+    <p>Основные разделы:</p>
+    <a href="{% url 'albums:list' %}" class="btn btn-primary me-2">
+        Альбомы
+    </a>
+    <a href="{% url 'artists:list' %}" class="btn btn-secondary me-2">
+        Исполнители
+    </a>
+    <a href="{% url 'library:list' %}" class="btn btn-success">
+        Коллекции
+    </a>
+{% endblock %}

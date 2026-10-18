@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if artist %}
+        {{ artist.name }} – Maestro
+    {% else %}
+        Исполнитель не найден – Maestro
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if artist %}
+        <div class="card artist-card">
+            <div class="card-body">
+                <h1 class="card-title">{{ artist.name }}</h1>
+
+                <p class="card-text">
+                    <strong>Страна:</strong> {{ artist.country }}
+                </p>
+
+                <p class="card-text">
+                    <strong>Жанр:</strong> {{ artist.genre }}
+                </p>
+
+                <h2 class="h5">Альбомы ({{ albums|length }})</h2>
+
+                <ul class="list-group list-group-flush">
+                    {% for album in albums %}
+                        <li class="list-group-item">
+                            <a href="{% url 'albums:detail' album.id %}">
+                                {{ album.title }} ({{ album.release_year }})
+                            </a>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item text-muted">
+                            Альбомов пока нет.
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% else %}
+        <h1 class="text-danger">Исполнитель не найден</h1>
+        <p>Исполнитель с указанным идентификатором отсутствует.</p>
+    {% endif %}
+
+    <a href="{% url 'artists:list' %}" class="btn btn-outline-secondary mt-3">
+        ← к списку исполнителей
+    </a>
+{% endblock %}

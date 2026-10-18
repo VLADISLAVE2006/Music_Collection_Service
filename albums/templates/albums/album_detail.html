@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if album %}
+        {{ album.title }} – Maestro
+    {% else %}
+        Альбом не найден – Maestro
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if album %}
+        <div class="card album-card">
+            <div class="card-body">
+                <h1 class="card-title">
+                    {{ album.title|default:"Без названия" }}
+                </h1>
+
+                <p class="card-text">
+                    <strong>Исполнитель:</strong>
+                    <a href="{% url 'artists:detail' album.artist.id %}">
+                        {{ album.artist.name }}
+                    </a>
+                </p>
+
+                <p class="card-text">
+                    <strong>Год выпуска:</strong> {{ album.release_year }}
+                    ({{ album.age }} лет назад)
+                </p>
+
+                <p class="card-text">
+                    <strong>Жанр:</strong> {{ album.genre }}
+                </p>
+
+                <p class="card-text">
+                    <strong>Песен:</strong> {{ album.songs_count }}
+                </p>
+
+                <p class="card-text">
+                    <strong>Оценка:</strong>
+                    {{ album.rating_stars }}
+                    {% if album.rating %}
+                        ({{ album.rating }}/{{ max_rating }})
+                    {% else %}
+                        (нет оценки)
+                    {% endif %}
+                </p>
+
+                <p class="card-text">
+                    <strong>Статус:</strong>
+                    {% include "albums/includes/album_status.html" %}
+                    {{ status }}
+                </p>
+
+                <p class="card-text">{{ recommendation }}</p>
+
+                <p class="card-text text-muted">
+                    Владелец: {{ album.user.name }}
+                </p>
+            </div>
+        </div>
+    {% else %}
+        <h1 class="text-danger">Альбом не найден</h1>
+        <p>Альбом с указанным идентификатором отсутствует.</p>
+    {% endif %}
+
+    <a href="{% url 'albums:list' %}" class="btn btn-outline-secondary mt-3">
+        ← к списку альбомов
+    </a>
+{% endblock %}
