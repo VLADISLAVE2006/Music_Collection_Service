@@ -31,15 +31,36 @@ def page(title: str, content: str) -> str:
 </html>"""
 
 
-def not_found(title: str, back_url: str, back_text: str) -> HttpResponse:
+def not_found(
+    title: str,
+    back_url: str,
+    back_text: str,
+    message: str = "",
+) -> HttpResponse:
     """Страница с сообщением об ошибке и кодом ответа 404."""
+    text = f'<p class="lead">{escape(message)}</p>' if message else ""
     content = f"""
-    <h1 class="text-danger">{escape(title)}</h1>
+    <p class="display-1 text-danger fw-bold">404</p>
+    <h1>{escape(title)}</h1>
+    {text}
     <a href="{back_url}" class="btn btn-outline-secondary">
         ← {escape(back_text)}
     </a>
     """
     return HttpResponse(page(title, content), status=404)
+
+
+def page_not_found(
+    request: HttpRequest,
+    exception: Exception | None = None,
+) -> HttpResponse:
+    """Собственный обработчик 404 (handler404) для несуществующих URL."""
+    return not_found(
+        "Страница не найдена",
+        "/",
+        "на главную",
+        "Такого адреса нет. Проверьте ссылку или вернитесь на главную.",
+    )
 
 
 def index(request: HttpRequest) -> HttpResponse:

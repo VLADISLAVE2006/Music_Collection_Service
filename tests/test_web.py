@@ -10,7 +10,7 @@ django.setup()
 
 @pytest.fixture
 def client():
-    return Client(HTTP_HOST="localhost")
+    return Client(HTTP_HOST="127.0.0.1")
 
 
 @pytest.mark.parametrize("url", [
@@ -52,3 +52,16 @@ def test_collection_page_shows_statistics(client):
     text = client.get("/collections/1/").content.decode("utf-8")
     assert "Всего альбомов" in text
     assert "Средняя оценка" in text
+
+
+def test_custom_handler404_for_unknown_url(client):
+    response = client.get("/nothing/")
+    text = response.content.decode("utf-8")
+    assert response.status_code == 404
+    assert "Страница не найдена" in text
+    assert "bootstrap" in text
+
+
+def test_handler404_is_registered():
+    from maestro import urls
+    assert urls.handler404 == "homepage.views.page_not_found"
